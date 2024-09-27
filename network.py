@@ -1,39 +1,47 @@
 import random
-
 from calculate import Value
 
 
 class Neuron:
 
-    def __init__(self, n_in):
-        self.w = [Value(random.uniform(-1,1)) for _ in range(n_in)]
-        self.b = Value(random.uniform(-1,1))
+    def __init__(self, nin):
+        self.w = [Value(random.uniform(-1, 1)) for _ in range(nin)]
+        self.b = Value(random.uniform(-1, 1))
 
     def __call__(self, x):
+        # w * x + b
+        act = sum((wi * xi for wi, xi in zip(self.w, x)), self.b)
+        #out = act.sigmoid()
+        out = act.relu()
+        return out
 
-        activation = sum((wi*xi for wi, xi in zip(self.w, x)), self.b)
-        output = activation.tanh()
-        return output
+    def parameters(self):
+        return self.w + [self.b]
 
 
 class Layer:
 
-    def __init__(self, n_in, n_out):
-        self.neurons = [Neuron(n_in) for _ in range(n_out)]
+    def __init__(self, nin, nout):
+        self.neurons = [Neuron(nin) for _ in range(nout)]
 
     def __call__(self, x):
-        outputs = [n(x) for n in self.neurons]
-        return outputs
+        outs = [n(x) for n in self.neurons]
+        return outs[0] if len(outs) == 1 else outs
 
+    def parameters(self):
+        return [p for neuron in self.neurons for p in neuron.parameters()]
 
 
 class MLPerceptron:
 
-    def __init__(self, n_in, n_outs):
-        sz = [n_in] + n_outs
-        self.layers = [Layer(sz[i] , sz[i+1]) for i in range(len(n_outs))]
+    def __init__(self, nin, nouts):
+        sz = [nin] + nouts
+        self.layers = [Layer(sz[i], sz[i + 1]) for i in range(len(nouts))]
 
     def __call__(self, x):
         for layer in self.layers:
             x = layer(x)
         return x
+
+    def parameters(self):
+        return [p for layer in self.layers for p in layer.parameters()]

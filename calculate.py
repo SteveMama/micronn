@@ -81,6 +81,28 @@ class Value:
 
         return out
 
+    def sigmoid(self):
+        x = self.data
+        sig = 1 / ( 1 + (math.exp(-x)))
+        out = Value(sig, (self, ), 'sigmoid')
+
+        def _backward():
+            self.grad += (1 - sig ** 2) * out.grad
+
+        out._backward = _backward
+        return out
+
+    def relu(self):
+        x = self.data
+        relu = np.argmax(0, x)
+        out = Value(relu, (self, ), 'sigmoid')
+
+        def _backward():
+            self.grad += (1 - relu ** 2) * out.grad
+
+        out._backward = _backward()
+        return out
+
     def exp(self):
         x = self.data
         out = Value(math.exp(x), (self,), 'exp')
